@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th = "http://www.thymeleaf.org"
+      xmlns:security="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head>
+    <meta charset="UTF-8">
+    <title>List of Books</title>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+
+    <style type="text/css">
+    .topcorner{
+     position:absolute;
+     top:30px;
+     right:330px;
+    }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h3 th:inline="text">Welcome [[${#httpServletRequest.remoteUser}]]</h3>
+    <div th:text="${#authentication.authorities}"></div>
+
+    <form action="#" th:action="@{/logout}"
+          method="POST"
+          class="btn btn-logout mt-2">
+        <input type="submit" align="center" class="topcorner" value="Logout" />
+    </form>
+    <hr>
+
+    <div>
+        <!-- Add a button visible to users with ROLE_LIBRARIAN only-->
+        <div>
+        <div th:if="${#authorization.expression('hasAuthority(''ROLE_LIBRARIAN'')')}">
+            <a th:href="@{/books/showFormForAdd}"
+               class="btn btn-primary btn-sm mb-3">
+                Add Book
+            </a>
+            <br>
+            <a class="btn btn-secondary btn-sm mb-3" th:href="@{/books/reviews}">Show all Reviews</a>
+        </div>
+        </div>
+        <br>
+        <form th:action="@{/books/list}" method="get" class="form-inline mb-3">
+            <input type="search" id="txtSearch" name="keyword" placeholder="Search by book title or author"/>
+            <button type="submit" class="btn btn-success">Search</button>
+        </form>
+        <br>
+    </div>
+</div>
+
+    <div class="container mb-5">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Book Id</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Publisher</th>
+                    <th>Pages</th>
+                    <th>Available Stock</th>
+                    <th>Action</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each = "currentBook : ${booksMA}">
+                    <td th:text=${currentBook.id}/>
+                    <td th:text=${currentBook.title}/>
+                    <td th:text=${currentBook.author}/>
+                    <td th:text=${currentBook.publisher}/>
+                    <td th:text=${currentBook.pages}/>
+                    <td th:text=${currentBook.stock}/>
+
+                    <td>
+                            <!-- Update & Delete Book actions only for users with ROLE_LIBRARIAN -->
+                            <div th:if="${#authorization.expression('hasAuthority(''ROLE_LIBRARIAN'')')}">
+                                <a th:href="@{/books/showFormForUpdate(bookId=${currentBook.id})}"
+                                   class="btn btn-info btn-sm mb-3">
+                                    Update Book
+                                </a>
+
+                                <a th:href="@{/books/delete(bookId=${currentBook.id})}"
+                                   class="btn btn-danger btn-sm mb-3"
+                                   onclick="if (!(confirm('Are you sure to delete this Book??'))) return false">
+                                    Delete Book
+                                </a>
+                            </div>
+
+                            <!-- View Reviews for all users -->
+                            <a th:href="@{/books/reviews-by-bookId(bookId=${currentBook.id})}"
+                                class="btn btn-secondary btn-sm">
+                                View Reviews
+                            </a>
+
+                            <!-- Add Review only for ROLE_VISITOR -->
+                            <div th:if="${#authorization.expression('hasAuthority(''ROLE_VISITOR'')')}">
+                                <hr>
+
+                                <a th:href="@{/books/showFormToGiveReview(bookId=${currentBook.id})}"
+                                   class="btn btn-warning btn-sm mb-3">
+                                    Add Review
+                                </a>
+                            </div>
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
